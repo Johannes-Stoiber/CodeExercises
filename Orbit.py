@@ -161,6 +161,7 @@ def main():
     plt.axhline(y=R[1], color = 'gray', linestyle = '--')
     plt.legend(loc = 1)
     plt.title('KDK leap-frog-integration of an Orbit with a = ' + msg)
+    plt.show()
     
     return 0
 
