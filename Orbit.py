@@ -43,7 +43,7 @@ def ellip1(a, b):
 
 def ellip2(a, p):
     """
-    Calculate ellipticity of a given ellipse using semi-major axis and semi latux rectum
+    Calculate ellipticity of a given ellipse using semi-major axis and semi latus rectum
     a   is a scalar of the semi-major axis
     p   is a scalar of the semi-latus rectrum
     """
@@ -61,10 +61,11 @@ def slr_for_this(r,R):
     r_slr = r_pot_slr[slr]
     return r_slr[0]
 
-def KDK(Nt, r, R, vel, M, m, G):
+def KDK(Nt, dt, r, R, vel, M, m, G):
     """
     Loop for a KDK leap-frog integration
     Nt   is a scalar of the total number of time steps
+    dt   is a scalar of a time step
     r    is a N x 3 matrix of the position of one particle
     R    is a 1 x 3 matrix of the position of the center
     vel  is a 1 x 3 matrix of the velocity 
@@ -72,7 +73,11 @@ def KDK(Nt, r, R, vel, M, m, G):
     m    is a scalar of the particle mass
     G    is the gravitational constant (6.67430e-11 Nm2kg-2)
     """
-    
+    #save positions
+    r_save = np.zeros((Nt, 3))
+    #save distances
+    d_save = np.zeros(Nt)
+
     for i in range(Nt):
         r_save[i] = r
         d = dist(R,r)
@@ -82,10 +87,11 @@ def KDK(Nt, r, R, vel, M, m, G):
         vel = vel + grav(M,m,R,r,G)/M*dt/2  # 1/2 kick
     return r_save, d_save
 
-def DKD(Nt, r, R, vel, M, m, G):
+def DKD(Nt, dt, r, R, vel, M, m, G):
     """
-    Loop for a DKD leap-frog integration
+    Loop for a KDK leap-frog integration
     Nt   is a scalar of the total number of time steps
+    dt   is a scalar of a time step
     r    is a N x 3 matrix of the position of one particle
     R    is a 1 x 3 matrix of the position of the center
     vel  is a 1 x 3 matrix of the velocity 
@@ -93,6 +99,11 @@ def DKD(Nt, r, R, vel, M, m, G):
     m    is a scalar of the particle mass
     G    is the gravitational constant (6.67430e-11 Nm2kg-2)
     """
+
+    #save positions
+    r_save = np.zeros((Nt, 3))
+    #save distances
+    d_save = np.zeros(Nt)
     
     for i in range(Nt):
         r_save[i] = r
@@ -105,7 +116,6 @@ def DKD(Nt, r, R, vel, M, m, G):
 
 def main():
     """ Orbit simulation """
-
 
     #initial conditions
     R = np.array([0,0,0])
@@ -121,15 +131,9 @@ def main():
     tEnd = 10.0
     Nt = int(np.ceil(tEnd/dt))# np.ceil rounds up to the next integer
 
-    #save positions
-    r_save = np.zeros((Nt, 3))
-    #save distances
-    d_save = np.zeros(Nt)
-
-
     #run the simulation either KDK or DKD
-    r_save, d_save = KDK(Nt, r, R, vel, M, m, G)
-    #r_save, d_save = DKD(Nt, r, R, vel, M, m, G)
+    #r_save, d_save = KDK(Nt, dt, r, R, vel, M, m, G)
+    r_save, d_save = DKD(Nt, dt, r, R, vel, M, m, G)
 
     #calculating some data
     #slr = slr_for_this(r_save,R) #position of semi latus rectrum
@@ -157,7 +161,6 @@ def main():
     plt.axhline(y=R[1], color = 'gray', linestyle = '--')
     plt.legend(loc = 1)
     plt.title('KDK leap-frog-integration of an Orbit with a = ' + msg)
-    plt.show()
     
     return 0
 
