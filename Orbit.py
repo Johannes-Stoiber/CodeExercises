@@ -74,17 +74,19 @@ def KDK(Nt, dt, r, R, vel, M, m, G):
     G    is the gravitational constant (6.67430e-11 Nm2kg-2)
     """
     #save positions
-    r_save = np.zeros((Nt, 3))
+    r_save = np.zeros((Nt+1, 3))
+    r_save[0] = r
     #save distances
-    d_save = np.zeros(Nt)
+    d_save = np.zeros(Nt+1)
+    d_save[0] = dist(R,r)
 
     for i in range(Nt):
-        r_save[i] = r
-        d = dist(R,r)
-        d_save[i] = d
         vel = vel + grav(M,m,R,r,G)/m*dt/2  # 1/2 kick
         r = r + vel*dt  #drift
         vel = vel + grav(M,m,R,r,G)/M*dt/2  # 1/2 kick
+        r_save[i+1] = r
+        d = dist(R,r)
+        d_save[i+1] = d
     return r_save, d_save
 
 def DKD(Nt, dt, r, R, vel, M, m, G):
@@ -101,17 +103,88 @@ def DKD(Nt, dt, r, R, vel, M, m, G):
     """
 
     #save positions
-    r_save = np.zeros((Nt, 3))
+    r_save = np.zeros((Nt+1, 3))
+    r_save[0] = r
     #save distances
-    d_save = np.zeros(Nt)
+    d_save = np.zeros(Nt+1)
+    d_save[0] = dist(R,r)
     
     for i in range(Nt):
-        r_save[i] = r
-        d = dist(R,r)
-        d_save[i] = d
         r = r + vel*dt/2  # 1/2 drift
         vel = vel + grav(M,m,R,r,G)/m*dt  #kick
         r = r + vel*dt/2  # 1/2 drift
+        r_save[i+1] = r
+        d = dist(R,r)
+        d_save[i+1] = d
+    return r_save, d_save
+
+def second_RK(Nt, dt, r, R, vel, M, m, G):
+    """
+    Loop for a second order Runge-Kutta integration
+    Nt   is a scalar of the total number of time steps
+    dt   is a scalar of the value of the time step
+    r    is a N x 3 matrix of the position of one particle
+    R    is a 1 x 3 matrix of the position of the center
+    vel  is a 1 x 3 matrix of the velocity 
+    M    is a scalar of the center mass
+    m    is a scalar of the particle mass
+    G    is the gravitational constant (6.67430e-11 Nm2kg-2)
+    """
+    
+    #save positions
+    r_save = np.zeros((Nt+1, 3))
+    r_save[0] = r
+    #save distances
+    d_save = np.zeros(Nt+1)
+    d_save[0] = dist(R,r)
+    
+    
+    for i in range(Nt):
+        k_1 = grav(M,m,R,r,G)/m
+        h_1 = vel
+        k_2 = grav(M,m,R,r+h_1*dt,G)/m
+        h_2 = vel*k_1*dt
+        vel = vel + 0.5*(k_1+k_2)*dt
+        r = r + 0.5*(h_1+h_2)*dt
+        r_save[i+1] = r
+        d = dist(R,r)
+        d_save[i+1] = d
+    return r_save, d_save
+
+def fourth_RK(Nt, dt, r, R, vel, M, m, G):
+    """
+    Loop for a second order Runge-Kutta integration
+    Nt   is a scalar of the total number of time steps
+    dt   is a scalar of the value of the time step
+    r    is a N x 3 matrix of the position of one particle
+    R    is a 1 x 3 matrix of the position of the center
+    vel  is a 1 x 3 matrix of the velocity 
+    M    is a scalar of the center mass
+    m    is a scalar of the particle mass
+    G    is the gravitational constant (6.67430e-11 Nm2kg-2)
+    """
+    
+    #save positions
+    r_save = np.zeros((Nt+1, 3))
+    r_save[0] = r
+    #save distances
+    d_save = np.zeros(Nt+1)
+    d_save[0] = dist(R,r)
+    
+    for i in range(Nt):
+        k_1_v = grav(M,m,R,r,G)/m
+        k_1_r = vel
+        k_2_v = grav(M,m,R,r+k_1_r*dt/2,G)/m
+        k_2_r = vel*k_1_v*dt/2
+        k_3_v = grav(M,m,R,r+k_2_r*dt/2,G)/m
+        k_3_r = vel*k_2_v*dt/2
+        k_4_v = grav(M,m,R,r+k_3_r*dt,G)/m
+        k_4_r = vel*k_3_v*dt
+        vel = vel + dt/6*(k_1_v+2*k_2_v+2*k_3_v+k_4_v)
+        r = r + dt/6*(k_1_r+2*k_2_r+2*k_3_r+k_4_r)
+        r_save[i+1] = r
+        d = dist(R,r)
+        d_save[i+1] = d
     return r_save, d_save
 
 def main():
@@ -129,11 +202,13 @@ def main():
     t = 0
     dt = 0.01
     tEnd = 10.0
-    Nt = int(np.ceil(tEnd/dt))# np.ceil rounds up to the next integer
+    Nt = int(np.ceil(tEnd/dt)) #np.ceil rounds up to the next integer
 
-    #run the simulation either KDK or DKD
-    #r_save, d_save = KDK(Nt, dt, r, R, vel, M, m, G)
-    r_save, d_save = DKD(Nt, dt, r, R, vel, M, m, G)
+    #run the simulation either KDK or DKD or second-order RK or fourth-order RK
+    r_save, d_save = KDK(Nt, dt, r, R, vel, M, m, G)
+    #r_save, d_save = DKD(Nt, dt, r, R, vel, M, m, G)
+    #r_save, d_save = second_RK(Nt, dt, r, R, vel, M, m, G)
+    #r_save, d_save = fourth_RK(Nt, dt, r, R, vel, M, m, G)
 
     #calculating some data
     #slr = slr_for_this(r_save,R) #position of semi latus rectrum
@@ -160,7 +235,7 @@ def main():
     plt.axvline(x=R[0], color = 'gray', linestyle = '--')
     plt.axhline(y=R[1], color = 'gray', linestyle = '--')
     plt.legend(loc = 1)
-    plt.title('KDK leap-frog-integration of an Orbit with a = ' + msg)
+    plt.title('KDK leap-frog integration of an Orbit with a = ' + msg, fontsize = 10)
     plt.show()
     
     return 0
