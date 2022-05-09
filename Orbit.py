@@ -122,7 +122,6 @@ def second_RK(Nt, dt, r, R, vel, M, m, G):
     """
     Loop for a second order Runge-Kutta integration
     Nt   is a scalar of the total number of time steps
-    dt   is a scalar of the value of the time step
     r    is a N x 3 matrix of the position of one particle
     R    is a 1 x 3 matrix of the position of the center
     vel  is a 1 x 3 matrix of the velocity 
@@ -143,7 +142,7 @@ def second_RK(Nt, dt, r, R, vel, M, m, G):
         k_1 = grav(M,m,R,r,G)/m
         h_1 = vel
         k_2 = grav(M,m,R,r+h_1*dt,G)/m
-        h_2 = vel*k_1*dt
+        h_2 = vel+k_1*dt
         vel = vel + 0.5*(k_1+k_2)*dt
         r = r + 0.5*(h_1+h_2)*dt
         r_save[i+1] = r
@@ -155,7 +154,6 @@ def fourth_RK(Nt, dt, r, R, vel, M, m, G):
     """
     Loop for a second order Runge-Kutta integration
     Nt   is a scalar of the total number of time steps
-    dt   is a scalar of the value of the time step
     r    is a N x 3 matrix of the position of one particle
     R    is a 1 x 3 matrix of the position of the center
     vel  is a 1 x 3 matrix of the velocity 
@@ -175,11 +173,11 @@ def fourth_RK(Nt, dt, r, R, vel, M, m, G):
         k_1_v = grav(M,m,R,r,G)/m
         k_1_r = vel
         k_2_v = grav(M,m,R,r+k_1_r*dt/2,G)/m
-        k_2_r = vel*k_1_v*dt/2
+        k_2_r = vel+k_1_v*dt/2
         k_3_v = grav(M,m,R,r+k_2_r*dt/2,G)/m
-        k_3_r = vel*k_2_v*dt/2
+        k_3_r = vel+k_2_v*dt/2
         k_4_v = grav(M,m,R,r+k_3_r*dt,G)/m
-        k_4_r = vel*k_3_v*dt
+        k_4_r = vel+k_3_v*dt
         vel = vel + dt/6*(k_1_v+2*k_2_v+2*k_3_v+k_4_v)
         r = r + dt/6*(k_1_r+2*k_2_r+2*k_3_r+k_4_r)
         r_save[i+1] = r
@@ -205,10 +203,10 @@ def main():
     Nt = int(np.ceil(tEnd/dt)) #np.ceil rounds up to the next integer
 
     #run the simulation either KDK or DKD or second-order RK or fourth-order RK
-    r_save, d_save = KDK(Nt, dt, r, R, vel, M, m, G)
+    #r_save, d_save = KDK(Nt, dt, r, R, vel, M, m, G)
     #r_save, d_save = DKD(Nt, dt, r, R, vel, M, m, G)
     #r_save, d_save = second_RK(Nt, dt, r, R, vel, M, m, G)
-    #r_save, d_save = fourth_RK(Nt, dt, r, R, vel, M, m, G)
+    r_save, d_save = fourth_RK(Nt, dt, r, R, vel, M, m, G)
 
     #calculating some data
     #slr = slr_for_this(r_save,R) #position of semi latus rectrum
@@ -224,6 +222,8 @@ def main():
     r_save_y = r_save[0:Nt, 1]
     #msg = str(round(ea,4))
     msg = str(round(a,4))
+    msg2 = str(dt)
+    
 
     #plotting
     fig = plt.figure()
@@ -234,8 +234,8 @@ def main():
     #plt.plot(slr[0],slr[1],'bo', label = 'slr')
     plt.axvline(x=R[0], color = 'gray', linestyle = '--')
     plt.axhline(y=R[1], color = 'gray', linestyle = '--')
-    plt.legend(loc = 1)
-    plt.title('KDK leap-frog integration of an Orbit with a = ' + msg, fontsize = 10)
+    plt.legend(title = 'stepsize = ' + msg2 + '\n' + 'semi-major axis a = ' + msg,loc = 4)
+    plt.title('KDK leap-frog integration of an Orbit', fontsize = 10)
     plt.show()
     
     return 0
