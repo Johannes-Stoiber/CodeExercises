@@ -83,7 +83,7 @@ def KDK(Nt, dt, r, R, vel, M, m, G):
     for i in range(Nt):
         vel = vel + grav(M,m,R,r,G)/m*dt/2  # 1/2 kick
         r = r + vel*dt  #drift
-        vel = vel + grav(M,m,R,r,G)/M*dt/2  # 1/2 kick
+        vel = vel + grav(M,m,R,r,G)/m*dt/2  # 1/2 kick
         r_save[i+1] = r
         d = dist(R,r)
         d_save[i+1] = d
@@ -190,23 +190,23 @@ def main():
 
     #initial conditions
     R = np.array([0,0,0])
-    r = np.array([1,0,0])
+    r = np.array([2,0,0])
     M = 10.0
     m = 1.0
     G = 1.0
-    vel = np.array([0,2,0])
+    vel = np.array([0,1,0])
 
     #simulation time
     t = 0
-    dt = 0.01
-    tEnd = 10.0
+    dt = 0.001
+    tEnd = 201.5
     Nt = int(np.ceil(tEnd/dt)) #np.ceil rounds up to the next integer
 
     #run the simulation either KDK or DKD or second-order RK or fourth-order RK
-    #r_save, d_save = KDK(Nt, dt, r, R, vel, M, m, G)
+    r_save, d_save = KDK(Nt, dt, r, R, vel, M, m, G)
     #r_save, d_save = DKD(Nt, dt, r, R, vel, M, m, G)
     #r_save, d_save = second_RK(Nt, dt, r, R, vel, M, m, G)
-    r_save, d_save = fourth_RK(Nt, dt, r, R, vel, M, m, G)
+    #r_save, d_save = fourth_RK(Nt, dt, r, R, vel, M, m, G)
 
     #calculating some data
     #slr = slr_for_this(r_save,R) #position of semi latus rectrum
@@ -227,6 +227,9 @@ def main():
 
     #plotting
     fig = plt.figure()
+    fig.set_size_inches(4, 4)
+    plt.xlim(-0.8,2.2)
+    plt.ylim(-1.5,1.5)
     plt.plot(r_save_x, r_save_y, 'k-')
     plt.plot(r_save_x[0], r_save_y[0], 'yo', label = 'start position')
     plt.plot(r_save_x[Nt-1], r_save_y[Nt-1], 'ro', label = 'end position')
@@ -234,8 +237,8 @@ def main():
     #plt.plot(slr[0],slr[1],'bo', label = 'slr')
     plt.axvline(x=R[0], color = 'gray', linestyle = '--')
     plt.axhline(y=R[1], color = 'gray', linestyle = '--')
-    plt.legend(title = 'stepsize = ' + msg2 + '\n' + 'semi-major axis a = ' + msg,loc = 4)
-    plt.title('KDK leap-frog integration of an Orbit', fontsize = 10)
+    plt.legend(title = 'stepsize = ' + msg2,loc = 4) # + '\n' + 'semi-major axis a = ' + msg
+    plt.title('KDK leap-frog integration of an Orbit', fontsize = 15)
     plt.show()
     
     return 0
